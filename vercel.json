@@ -1,12 +1,19 @@
 {
   "version": 2,
   "builds": [
-    { "src": "server.js", "use": "@vercel/node" },
-    { "src": "frontend/RuleManager/package.json", "use": "@vercel/static-build" }
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "frontend/RuleManager/package.json",
+      "use": "@vercel/static-build"
+    }
   ],
   "routes": [
     { "src": "/auth/(.*)", "dest": "server.js" },
     { "src": "/oauth/(.*)", "dest": "server.js" },
+    { "src": "/api/(.*)", "dest": "server.js" },
     { "src": "/(.*)", "dest": "frontend/RuleManager/$1" }
   ]
 }
