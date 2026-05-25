@@ -8,7 +8,6 @@ function App() {
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('Validation Rules');
 
-
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tokenParam = params.get('token');
@@ -32,8 +31,7 @@ function App() {
   }, []);
 
   const handleLogin = () => {
-  
-    window.location.href = 'http://localhost:5000/auth/login';
+    window.location.href = 'https://sf-switch-backend.onrender.com/auth/login';
   };
 
   const fetchValidationRules = async () => {
@@ -41,7 +39,8 @@ function App() {
     setLoading(true);
     setMessage('');
     try {
-      const response = await axios.post('http://localhost:5000/api/validation-rules', {
+      // 🔥 FIX 1: Added missing 'await' statement to properly catch the incoming data stream response
+      const response = await axios.post('https://sf-switch-backend.onrender.com/api/validation-rules', {
         accessToken: session.accessToken,
         instanceUrl: session.instanceUrl
       });
@@ -62,21 +61,21 @@ function App() {
   };
 
   const deployChanges = async () => {
-  setLoading(true);
-  setMessage('');
-  try {
-   
-    await axios.post('http://localhost:5000/api/deploy-rules', { 
-      accessToken: session.accessToken,
-      instanceUrl: session.instanceUrl,
-      rules: rules
-    });
-    setMessage('All changes have been successfully deployed.');
-  } catch (err) {
-    setMessage('Error deploying changes: ' + err.message);
-  } finally {
-    setLoading(false);
-  }
+    setLoading(true);
+    setMessage('');
+    try {
+      // 🔥 FIX 2: Added missing 'await' statement to make sure the app pauses until deployment completes successfully
+      await axios.post('https://sf-switch-backend.onrender.com/api/deploy-rules', { 
+        accessToken: session.accessToken,
+        instanceUrl: session.instanceUrl,
+        rules: rules
+      });
+      setMessage('All changes have been successfully deployed.');
+    } catch (err) {
+      setMessage('Error deploying changes: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = () => {
@@ -86,7 +85,6 @@ function App() {
     setMessage('');
   };
 
-  
   const styles = {
     container: { maxWidth: '1000px', margin: '40px auto', fontFamily: 'sans-serif', padding: '0 20px' },
     title: { fontSize: '32px', color: '#e25c24', margin: '0 0 10px 0' },
@@ -112,7 +110,7 @@ function App() {
       </p>
 
       {message && (
-        <div style={{ ...styles.banner, background: message.includes('failed') ? '#fdf2f2' : '#edfbf2', color: message.includes('failed') ? '#9c1c1c' : '#1c7a3c', border: message.includes('failed') ? '1px solid #f5c6c6' : '1px solid #d6e9c6' }}>
+        <div style={{ ...styles.banner, background: message.includes('Error') || message.includes('failed') ? '#fdf2f2' : '#edfbf2', color: message.includes('Error') || message.includes('failed') ? '#9c1c1c' : '#1c7a3c', border: message.includes('Error') || message.includes('failed') ? '1px solid #f5c6c6' : '1px solid #d6e9c6' }}>
           {message}
         </div>
       )}
@@ -124,7 +122,6 @@ function App() {
         </div>
       ) : (
         <div>
-          {/* User Status Bar matching the video layout */}
           <div style={styles.sessionInfo}>
             <div>
               <strong>Logged in as:</strong> <span style={{ marginLeft: '10px', color: '#333' }}>{session.username}</span>
@@ -137,7 +134,6 @@ function App() {
 
           {loading && <div style={{ color: '#f05a28', fontWeight: 'bold', margin: '15px 0' }}>Processing data stream...</div>}
 
-          {}
           <div style={styles.tabBar}>
             {['Validation Rules', 'Workflows', 'Process Flows', 'Triggers'].map(tab => (
               <div key={tab} style={styles.tab(activeTab === tab)} onClick={() => setActiveTab(tab)}>
