@@ -117,6 +117,10 @@ app.post('/api/deploy-rules', async (req, res) => {
 const PORT = process.env.PORT || 10000;
 
 // Adding '0.0.0.0' tells the app to listen to external network requests from Render
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running smoothly on port ${PORT}`);
-});
+// 
+// Remove app.listen completely!
+// const PORT = process.env.PORT || 10000;
+// app.listen(PORT, () => { ... });
+
+// Add this line so Vercel can run your Express app as a function:
+module.exports = app;
