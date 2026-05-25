@@ -5,7 +5,6 @@ const crypto = require('crypto');
 
 const app = express();
 
-
 const allowedOrigins = [
   'http://localhost:5173',
   'https://rule-manager-mbka.vercel.app',
@@ -27,33 +26,43 @@ app.use(cors({
 
 app.use(express.json());
 
-const oauth2 = new jsforce.OAuth2({
-  clientId: process.env.SF_CLIENT_ID,
-  clientSecret: process.env.SF_CLIENT_SECRET,
-  redirectUri: process.env.SF_REDIRECT_URI, 
-  loginUrl: 'https://login.salesforce.com' 
-});
-
-app.get('/auth/login', (req, res) => {
-  const authUrl = oauth2.getAuthorizationUrl({ 
-    scope: 'api refresh_token' 
+// 🛠️ 1. HELPER FUNCTION TO GET OAUTH INSTANCE DYNAMICALLY
+// This forces Vercel to look up the environment variables at the exact moment a user clicks login!
+const getOAuth2 = () => {
+  return new jsforce.OAuth2({
+    clientId: process.env.SF_CLIENT_ID,
+    clientSecret: process.env.SF_CLIENT_SECRET,
+    redirectUri: process.env.SF_REDIRECT_URI, 
+    loginUrl: 'https://login.salesforce.com' 
   });
-  res.redirect(authUrl);
+};
+
+// 🛠️ 2. UPDATED ROUTE HANDLERS USING THE DYNAMIC HELPER
+app.get('/auth/login', (req, res) => {
+  try {
+    const oauth2 = getOAuth2();
+    const authUrl = oauth2.getAuthorizationUrl({ 
+      scope: 'api refresh_token' 
+    });
+    res.redirect(authUrl);
+  } catch (error) {
+    res.status(500).send("Initialization Failed: " + error.message);
+  }
 });
 
 app.get('/oauth/callback', async (req, res) => {
-  const conn = new jsforce.Connection({ oauth2: oauth2 });
   const code = req.query.code;
-  
   if (!code) {
     return res.status(400).send("Authorization code missing from callback parameters.");
   }
   
   try {
+    const oauth2 = getOAuth2();
+    const conn = new jsforce.Connection({ oauth2: oauth2 });
+    
     await conn.authorize(code);
     const identity = await conn.identity();
     
-    // 🛠️ 2. FIXED REDIRECT TARGET: Directing straight back to your current Vercel app URL
     const frontendRedirectUrl = process.env.NODE_ENV === 'production'
       ? 'https://rule-manager-mbka.vercel.app' 
       : 'http://localhost:5173';                
@@ -99,6 +108,5 @@ app.post('/api/deploy-rules', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 module.exports = app;
