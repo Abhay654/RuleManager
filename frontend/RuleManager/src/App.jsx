@@ -31,7 +31,7 @@ function App() {
   }, []);
 
   const handleLogin = () => {
-    window.location.href = 'https://sf-switch-backend.onrender.com/auth/login';
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/login`;
   };
 
   const fetchValidationRules = async () => {
