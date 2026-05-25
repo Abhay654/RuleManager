@@ -8,6 +8,7 @@ const app = express();
 
 const allowedOrigins = [
   'http://localhost:5173',
+  'https://rule-manager-mbka.vercel.app',
   'https://sf-switch-dashboard.vercel.app' 
 ];
 
@@ -24,9 +25,7 @@ app.use(cors({
   credentials: true
 }));
 
-
 app.use(express.json());
-
 
 const oauth2 = new jsforce.OAuth2({
   clientId: process.env.SF_CLIENT_ID,
@@ -35,16 +34,12 @@ const oauth2 = new jsforce.OAuth2({
   loginUrl: 'https://login.salesforce.com' 
 });
 
-
-
-
 app.get('/auth/login', (req, res) => {
   const authUrl = oauth2.getAuthorizationUrl({ 
     scope: 'api refresh_token' 
   });
   res.redirect(authUrl);
 });
-
 
 app.get('/oauth/callback', async (req, res) => {
   const conn = new jsforce.Connection({ oauth2: oauth2 });
@@ -55,25 +50,20 @@ app.get('/oauth/callback', async (req, res) => {
   }
   
   try {
-    
     await conn.authorize(code);
-    
-    
     const identity = await conn.identity();
     
-    
+    // 🛠️ 2. FIXED REDIRECT TARGET: Directing straight back to your current Vercel app URL
     const frontendRedirectUrl = process.env.NODE_ENV === 'production'
-      ? 'https://sf-switch-dashboard.vercel.app' // Production URL
-      : 'http://localhost:5173';                 // Local Fallback
+      ? 'https://rule-manager-mbka.vercel.app' 
+      : 'http://localhost:5173';                
 
-    
     res.redirect(`${frontendRedirectUrl}?token=${conn.accessToken}&instance=${conn.instanceUrl}&username=${identity.username}`);
   } catch (err) {
     console.error("Callback Handshake Failed:", err.message);
     res.status(500).send("Callback Handshake Failed: " + err.message);
   }
 });
-
 
 app.post('/api/validation-rules', async (req, res) => {
   const { accessToken, instanceUrl } = req.body;
@@ -87,16 +77,13 @@ app.post('/api/validation-rules', async (req, res) => {
   }
 });
 
-
 app.post('/api/deploy-rules', async (req, res) => {
   const { accessToken, instanceUrl, rules } = req.body;
   const conn = new jsforce.Connection({ instanceUrl, accessToken });
   
   try {
     for (const rule of rules) {
-      
       const liveRecord = await conn.tooling.sobject('ValidationRule').retrieve(rule.Id);
-      
       
       await conn.tooling.sobject('ValidationRule').update({
         Id: rule.Id,
@@ -114,13 +101,4 @@ app.post('/api/deploy-rules', async (req, res) => {
 });
 
 
-const PORT = process.env.PORT || 10000;
-
-// Adding '0.0.0.0' tells the app to listen to external network requests from Render
-// 
-// Remove app.listen completely!
-// const PORT = process.env.PORT || 10000;
-// app.listen(PORT, () => { ... });
-
-// Add this line so Vercel can run your Express app as a function:
 module.exports = app;
