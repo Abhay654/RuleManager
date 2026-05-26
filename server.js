@@ -1,4 +1,4 @@
-// 🛠️ CRITICAL VERCEL FIX: Explicitly force dotenv config to load before any execution
+
 require('dotenv').config();
 
 const express = require('express');
@@ -29,7 +29,7 @@ app.use(cors({
 
 app.use(express.json());
 
-// HELPER FUNCTION TO GET OAUTH INSTANCE DYNAMICALLY
+
 const getOAuth2 = () => {
   console.log("Vercel Runtime Key Resolution:", {
     ID_LENGTH: process.env.SF_CLIENT_ID ? process.env.SF_CLIENT_ID.length : 0,
@@ -44,7 +44,7 @@ const getOAuth2 = () => {
   });
 };
 
-// STANDARD ROUTE HANDLERS
+
 app.get('/auth/login', (req, res) => {
   try {
     const oauth2 = getOAuth2();
@@ -57,8 +57,7 @@ app.get('/auth/login', (req, res) => {
   }
 });
 
-// 🔑 NEW DEMO BYPASS ROUTE
-// This takes your credentials stored in Vercel and pushes them straight to the frontend link
+
 app.get('/auth/demo', (req, res) => {
   try {
     const token = process.env.SF_DEMO_TOKEN; 

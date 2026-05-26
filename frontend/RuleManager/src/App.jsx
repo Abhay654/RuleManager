@@ -30,7 +30,7 @@ function App() {
     }
   }, []);
 
-  // 🛠️ 1. OPTIMIZED LOGIN HANDLER: Routes straight to your auto-login backend bypass
+  
   const handleLogin = () => {
     window.location.href = '/auth/demo';
   };
@@ -108,7 +108,7 @@ function App() {
         This tool provides an interface to easily enable and disable components in your Salesforce Org - Workflows, Triggers and Validation Rules.
       </p>
 
-      {/* 🛠️ 2. FIXED SUCCESS BANNER STYLING: Dynamically swaps to green background for successful deployments */}
+      {}
       {message && (
         <div style={{ 
           ...styles.banner, 
