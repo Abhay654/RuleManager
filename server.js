@@ -1,3 +1,7 @@
+// 🛠️ CRITICAL VERCEL FIX: Explicitly force dotenv config to load before any execution
+// Even though Vercel injects settings, this acts as a critical anchor for nested router setups.
+require('dotenv').config();
+
 const express = require('express');
 const jsforce = require('jsforce');
 const cors = require('cors');
@@ -26,9 +30,14 @@ app.use(cors({
 
 app.use(express.json());
 
-// 🛠️ 1. HELPER FUNCTION TO GET OAUTH INSTANCE DYNAMICALLY
-// This forces Vercel to look up the environment variables at the exact moment a user clicks login!
+// 🛠️ HELPER FUNCTION TO GET OAUTH INSTANCE DYNAMICALLY
 const getOAuth2 = () => {
+  // Debug fallback log to check exactly what Vercel is sending (Visible in Vercel Runtime Logs)
+  console.log("Vercel Runtime Key Resolution:", {
+    ID_LENGTH: process.env.SF_CLIENT_ID ? process.env.SF_CLIENT_ID.length : 0,
+    URI_VALUE: process.env.SF_REDIRECT_URI
+  });
+
   return new jsforce.OAuth2({
     clientId: process.env.SF_CLIENT_ID,
     clientSecret: process.env.SF_CLIENT_SECRET,
@@ -37,7 +46,7 @@ const getOAuth2 = () => {
   });
 };
 
-// 🛠️ 2. UPDATED ROUTE HANDLERS USING THE DYNAMIC HELPER
+// ROUTE HANDLERS
 app.get('/auth/login', (req, res) => {
   try {
     const oauth2 = getOAuth2();
