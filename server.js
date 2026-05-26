@@ -1,5 +1,4 @@
 // 🛠️ CRITICAL VERCEL FIX: Explicitly force dotenv config to load before any execution
-// Even though Vercel injects settings, this acts as a critical anchor for nested router setups.
 require('dotenv').config();
 
 const express = require('express');
@@ -30,9 +29,8 @@ app.use(cors({
 
 app.use(express.json());
 
-// 🛠️ HELPER FUNCTION TO GET OAUTH INSTANCE DYNAMICALLY
+// HELPER FUNCTION TO GET OAUTH INSTANCE DYNAMICALLY
 const getOAuth2 = () => {
-  // Debug fallback log to check exactly what Vercel is sending (Visible in Vercel Runtime Logs)
   console.log("Vercel Runtime Key Resolution:", {
     ID_LENGTH: process.env.SF_CLIENT_ID ? process.env.SF_CLIENT_ID.length : 0,
     URI_VALUE: process.env.SF_REDIRECT_URI
@@ -46,7 +44,7 @@ const getOAuth2 = () => {
   });
 };
 
-// ROUTE HANDLERS
+// STANDARD ROUTE HANDLERS
 app.get('/auth/login', (req, res) => {
   try {
     const oauth2 = getOAuth2();
@@ -56,6 +54,29 @@ app.get('/auth/login', (req, res) => {
     res.redirect(authUrl);
   } catch (error) {
     res.status(500).send("Initialization Failed: " + error.message);
+  }
+});
+
+// 🔑 NEW DEMO BYPASS ROUTE
+// This takes your credentials stored in Vercel and pushes them straight to the frontend link
+app.get('/auth/demo', (req, res) => {
+  try {
+    const token = process.env.SF_DEMO_TOKEN; 
+    const instance = process.env.SF_DEMO_INSTANCE || 'https://login.salesforce.com';
+    const username = process.env.SF_DEMO_USERNAME || 'Demo User';
+
+    if (!token) {
+      return res.status(500).send("Demo setup failed: SF_DEMO_TOKEN is missing from Vercel settings.");
+    }
+
+    const frontendRedirectUrl = process.env.NODE_ENV === 'production'
+      ? 'https://rule-manager-mbka.vercel.app' 
+      : 'http://localhost:5173';                
+
+    // Instantly routes them to the dashboard as a pre-authenticated user
+    res.redirect(`${frontendRedirectUrl}?token=${token}&instance=${instance}&username=${username}`);
+  } catch (error) {
+    res.status(500).send("Demo Routing Failed: " + error.message);
   }
 });
 

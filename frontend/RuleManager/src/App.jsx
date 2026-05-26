@@ -30,12 +30,11 @@ function App() {
     }
   }, []);
 
-  // 🛠️ 1. FIXED LOGIN HANDLER: Points to the clean Vercel router path directly
+  // 🛠️ 1. OPTIMIZED LOGIN HANDLER: Routes straight to your auto-login backend bypass
   const handleLogin = () => {
-    window.location.href = '/auth/login';
+    window.location.href = '/auth/demo';
   };
 
-  // 🛠️ 2. FIXED DATA FETCH: Removed Render domain to point directly to Vercel routes
   const fetchValidationRules = async () => {
     if (!session) return;
     setLoading(true);
@@ -61,7 +60,6 @@ function App() {
     setRules(prev => prev.map(r => r.Id === id ? { ...r, Active: !r.Active } : r));
   };
 
-  // 🛠️ 3. FIXED DEPLOY CHANGES: Shifted route target over to unified Vercel path
   const deployChanges = async () => {
     setLoading(true);
     setMessage('');
@@ -110,8 +108,14 @@ function App() {
         This tool provides an interface to easily enable and disable components in your Salesforce Org - Workflows, Triggers and Validation Rules.
       </p>
 
+      {/* 🛠️ 2. FIXED SUCCESS BANNER STYLING: Dynamically swaps to green background for successful deployments */}
       {message && (
-        <div style={{ ...styles.banner, background: message.includes('Error') || message.includes('failed') ? '#fdf2f2' : '#9c1c1c', color: message.includes('Error') || message.includes('failed') ? '#9c1c1c' : '#1c7a3c', border: message.includes('Error') || message.includes('failed') ? '1px solid #f5c6c6' : '1px solid #d6e9c6' }}>
+        <div style={{ 
+          ...styles.banner, 
+          background: message.includes('Error') || message.includes('failed') ? '#fdf2f2' : '#edfbf2', 
+          color: message.includes('Error') || message.includes('failed') ? '#9c1c1c' : '#1c7a3c', 
+          border: message.includes('Error') || message.includes('failed') ? '1px solid #f5c6c6' : '1px solid #d6e9c6' 
+        }}>
           {message}
         </div>
       )}
